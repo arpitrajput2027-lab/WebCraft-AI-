@@ -26,6 +26,15 @@ const Generate = () => {
     const [error, setError] = useState("")
     const {userData} = useSelector(state=>state.user)
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (prompt.trim() && !loading) {
+                handleGenerateWebsite();
+            }
+        }
+    }
+
     const handleGenerateWebsite = async () => {
 
         try {
@@ -95,24 +104,13 @@ const Generate = () => {
 
     return (
 
-        <div className='relative min-h-screen bg-[#050505] text-white overflow-hidden'>
+        <div className='relative min-h-screen bg-slate-50 text-slate-900 overflow-hidden'>
 
-            {/* Falling Light Effect */}
-            <div className='pointer-events-none absolute inset-0'>
-
-                {/* beam */}
-                <div className='absolute top-0 left-1/2 -translate-x-1/2 w-100 h-100 
-                bg-linear-to-b from-white/20 via-white/10 to-transparent 
-                blur-3xl opacity-40'/>
-
-                {/* center glow */}
-                <div className='absolute top-0 left-1/2 -translate-x-1/2 w-100 h-100 
-                bg-white/20 rounded-full blur-[150px]' />
-
-            </div>
+            {/* Background Gradient */}
+            <div className='absolute inset-0 pointer-events-none bg-gradient-to-br from-slate-100 to-white' />
 
             {/* header */}
-            <div className="sticky top-0 z-40 backdrop-blur-xl bg-black/50 border-b border-white/10">
+            <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-slate-200 shadow-sm">
 
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center">
 
@@ -120,12 +118,12 @@ const Generate = () => {
 
                         <button
                             onClick={() => navigate("/")}
-                            className="p-2 rounded-lg hover:bg-white/10 transition"
+                            className="p-2 rounded-lg hover:bg-slate-100 transition"
                         >
                             <ArrowLeft size={16} />
                         </button>
 
-                        <h1 className="text-lg font-semibold">Dora AI</h1>
+                        <h1 className="text-lg font-semibold text-slate-900">WebCraft AI</h1>
 
                     </div>
 
@@ -144,14 +142,14 @@ const Generate = () => {
                     <h1 className='text-4xl md:text-5xl font-bold mb-5 leading-tight'>
                         Build Website with
 
-                        <span className='block bg-linear-to-r from-white to-zinc-400 bg-clip-text text-transparent'>
+                        <span className='block bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent'>
                             Real AI Power
                         </span>
 
                     </h1>
 
-                    <p className='text-zinc-400 max-w-2xl mx-auto'>
-                        This process may take several minutes. Dora AI focuses on quality not shortcuts
+                    <p className='text-slate-600 max-w-2xl mx-auto'>
+                        This process may take several minutes. WebCraft AI focuses on quality not shortcuts
                     </p>
 
                 </motion.div>
@@ -167,14 +165,15 @@ const Generate = () => {
                         <textarea
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
-                            className='w-full h-56 p-6 rounded-3xl bg-black/60 border border-white/10 outline-none resize-none text-sm leading-relaxed focus:ring-2 focus:ring-white/20'
+                            onKeyDown={handleKeyDown}
+                            className='w-full h-56 p-6 rounded-3xl bg-white border border-slate-200 shadow-sm outline-none resize-none text-sm leading-relaxed focus:ring-2 focus:ring-indigo-100 text-slate-900'
                             placeholder='Describe your website in detail...'
                         />
 
                     </div>
 
                     {error && (
-                        <p className='mt-4 text-sm text-red-400'>
+                        <p className='mt-4 text-sm text-red-500'>
                             {error}
                         </p>
                     )}
@@ -188,11 +187,11 @@ const Generate = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.96 }}
                         disabled={!prompt.trim() || loading}
-                        className={`px-14 py-4 rounded-2xl font-semibold text-lg transition
+                        className={`px-14 py-4 rounded-2xl font-semibold text-lg transition shadow-sm
                         ${
                             prompt.trim() && !loading
-                                ? "bg-white text-black"
-                                : "bg-white/20 text-zinc-400 cursor-not-allowed"
+                                ? "bg-slate-900 text-white hover:bg-slate-800"
+                                : "bg-slate-200 text-slate-400 cursor-not-allowed"
                         }`}
                     >
 
@@ -210,25 +209,25 @@ const Generate = () => {
                         className='max-w-xl mx-auto mt-12'
                     >
 
-                        <div className='flex justify-between mb-2 text-xs text-zinc-400'>
+                        <div className='flex justify-between mb-2 text-xs text-slate-500'>
                             <span>{PHASES[phaseIndex]}</span>
                             <span>{progress}%</span>
                         </div>
 
-                        <div className='h-2 w-full bg-white/10 rounded-full overflow-hidden'>
+                        <div className='h-2 w-full bg-slate-200 rounded-full overflow-hidden'>
 
                             <motion.div
                                 animate={{ width: `${progress}%` }}
                                 transition={{ ease: "easeOut", duration: 0.8 }}
-                                className='h-full bg-linear-to-r from-white to-zinc-300'
+                                className='h-full bg-slate-900'
                             />
 
                         </div>
 
-                        <div className='text-center text-xs text-zinc-400 mt-4'>
+                        <div className='text-center text-xs text-slate-500 mt-4'>
 
                             Estimated time remaining:{" "}
-                            <span className='text-white font-medium'>
+                            <span className='text-slate-900 font-medium'>
                                 ~8-12 minutes
                             </span>
 

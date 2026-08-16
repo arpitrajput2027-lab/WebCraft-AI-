@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { Code2, MessageSquare, Monitor, Rocket, Send, X } from 'lucide-react'
+import { Code2, MessageSquare, Monitor, Send, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -18,6 +18,15 @@ const WebsiteEditor = () => {
     const [showCode, setShowCode] = useState(false)
     const [showFullPreview, setShowFullPreview] = useState(false)
     const [showChat, setShowChat] = useState(false)
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (prompt.trim() && !updateLoading) {
+                handleUpdate();
+            }
+        }
+    }
     const thinkingSteps = [
         "Understanding your request...",
         "Planning layout changes...",
@@ -26,15 +35,6 @@ const WebsiteEditor = () => {
         "Finalizing Update..."
     ]
 
-    const handleDeploy = async (id) => {
-    try {
-         const result = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/website/deploy/${website._id}`,{withCredentials:true})
-         window.open(`${result.data.url}`,"_blank")
-         
-    } catch (error) {
-         console.log(error)
-    }
-  }
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -44,10 +44,13 @@ const WebsiteEditor = () => {
     }, [updateLoading])
 
     const handleUpdate = async () => {
-        setMessages((m) => [...m, { role: "user", content: prompt }])
+        if (!prompt.trim()) return;
+        const currentPrompt = prompt;
+        setPrompt("");
+        setMessages((m) => [...m, { role: "user", content: currentPrompt }])
         setUpdateLoading(true)
         try {
-            const result = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/website/update/${id}`, { prompt }, { withCredentials: true })
+            const result = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/website/update/${id}`, { prompt: currentPrompt }, { withCredentials: true })
             setMessages((m) => [...m, { role: "ai", content: result.data.message }])
             setCode(result.data.code)
         } catch (error) {
@@ -115,9 +118,10 @@ const WebsiteEditor = () => {
                             <textarea
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
+                                onKeyDown={handleKeyDown}
                                 rows={1}
                                 placeholder='Describe changes...'
-                                className='flex-1 resize-none rounded-2xl px-4 py-3 bg-white/5 border border-white/10 text-outline-none' />
+                                className='flex-1 resize-none rounded-2xl px-4 py-3 bg-white/5 border border-white/10 outline-none' />
                             <button disabled={updateLoading} onClick={handleUpdate} className='px-4 py-3 rounded-2xl bg-white text-black'><Send size={18} /></button>
                         </div>
                     </div>
@@ -129,10 +133,6 @@ const WebsiteEditor = () => {
                 <div className='h-14 px-4 flex justify-between items-center border-b border-white/10 bg-black/80'>
                     <span className='text-xs text-zinc-400'>Live Preview</span>
                     <div className='flex gap-2'>
-                        {website.deployed ? "": <button 
-                        onClick={handleDeploy}
-                        className='flex items-center gap-2 px-4 py-1.5 rounded-lg bg-linear-to-r from-indigo-500 to-purple-500 text-sm font-semibold hover:scale-105 transition'><Rocket size={14} />Deploy</button>}
-                      
                         <button onClick={() => setShowChat(true)} className='p-2 lg:hidden'><MessageSquare size={18} /></button>
                         <button onClick={() => setShowCode(true)} className='p-2'><Code2 size={18} /></button>
                         <button onClick={() => setShowFullPreview(true)} className='p-2'><Monitor size={18} /></button>
@@ -173,9 +173,10 @@ const WebsiteEditor = () => {
                                     <textarea
                                         value={prompt}
                                         onChange={(e) => setPrompt(e.target.value)}
+                                        onKeyDown={handleKeyDown}
                                         rows={1}
                                         placeholder='Describe changes...'
-                                        className='flex-1 resize-none rounded-2xl px-4 py-3 bg-white/5 border border-white/10 text-outline-none' />
+                                        className='flex-1 resize-none rounded-2xl px-4 py-3 bg-white/5 border border-white/10 outline-none' />
                                     <button disabled={updateLoading} onClick={handleUpdate} className='px-4 py-3 rounded-2xl bg-white text-black'><Send size={18} /></button>
                                 </div>
                             </div>
