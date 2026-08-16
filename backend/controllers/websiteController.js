@@ -30,9 +30,11 @@ GLOBAL QUALITY BAR (NON-NEGOTIABLE)
 - Premium, modern UI (2026–2027)
 - Professional typography & spacing
 - Clean visual hierarchy
-- Business-ready content (NO lorem ipsum)
+- REALISTIC, LONG-FORM CONTENT (Write actual paragraphs, features, and testimonials relevant to the user's prompt. NO 'lorem ipsum', NO short generic text like 'Welcome to our site')
 - Smooth transitions & hover effects
-- SPA-style multi-page experience
+- Continuous single-page layout (Landing page style with sections like Hero, About, Services/Features, Testimonials, Contact)
+- Navigation bar links MUST scroll to sections on the same page using IDs (e.g. href="#about")
+- NO multi-page links or separate HTML pages
 - Production-ready, readable code
 
 --------------------------------------------------
@@ -86,36 +88,37 @@ TECHNICAL RULES (VERY IMPORTANT)
 - NO external CSS / JS / fonts
 - Use system fonts only
 - iframe srcdoc compatible
-- SPA-style navigation using JavaScript
+- NO page tab-switching with Javascript
+- ALL content MUST be visible in a single continuous scrollable layout
+- Use native HTML anchor links (href="#about") for navigation
 - No page reloads
 - No dead UI
 - No broken buttons
---------------------------------------------------
-SPA VISIBILITY RULE (MANDATORY)
---------------------------------------------------
-- Pages MUST NOT be hidden permanently
-- If .page { display: none } is used,
-  then .page.active { display: block } is REQUIRED
-- At least ONE page MUST be visible on initial load
-- Hiding all content is INVALID
-
 
 --------------------------------------------------
-REQUIRED SPA PAGES
+LAYOUT STRUCTURE (MANDATORY)
 --------------------------------------------------
-- Home
-- About
-- Services / Features
-- Contact
+- ALL sections MUST be stacked vertically in a single page
+- DO NOT use CSS like 'display: none' to hide sections
+- Users should be able to scroll from top to bottom to see everything
+- The Navigation Bar MUST be sticky/fixed at the top
+
+--------------------------------------------------
+REQUIRED SECTIONS (STACKED VERTICALLY)
+--------------------------------------------------
+- Hero Section (Full viewport height, strong call to action)
+- About / Mission Section
+- Features / Services Section
+- Testimonials / Social Proof Section
+- Contact Form / Footer Section
 
 --------------------------------------------------
 FUNCTIONAL REQUIREMENTS
 --------------------------------------------------
-- Navigation must switch pages using JS
-- Active nav state must update
-- Forms must have JS validation
+- Navigation MUST use smooth scrolling anchor links (e.g., <a href="#features">)
+- Forms must have JS validation but NOT submit anywhere
 - Buttons must show hover + active states
-- Smooth section/page transitions
+- Add subtle reveal animations on scroll using Intersection Observer or pure CSS
 
 --------------------------------------------------
 FINAL SELF-CHECK (MANDATORY)
@@ -136,6 +139,7 @@ IF ANY CHECK FAILS → RESPONSE IS INVALID
 OUTPUT FORMAT (RAW JSON ONLY)
 --------------------------------------------------
 {
+  "title": "Short, meaningful project name (3-5 words max, like 'Fitness Studio Landing Page' or 'SaaS Dashboard')",
   "message": "Short professional confirmation sentence",
   "code": "<FULL VALID HTML DOCUMENT>"
 }
@@ -183,7 +187,7 @@ export const generateWebsite = async (req, res) => {
     }
     const website = await Website.create({
       user: user._id,
-      title: prompt.slice(0, 60),
+      title: parsed.title || prompt.slice(0, 60),
       latestCode: parsed.code,
       conversation: [
         { role: "user", content: prompt },
@@ -297,41 +301,36 @@ export const getAllWebsite = async (req, res) => {
   }
 }
 
-export const deployWebsite = async (req, res) => {
+export const deleteWebsite = async (req, res) => {
   try {
-    const website = await Website.findOne({
+    const website = await Website.findOneAndDelete({
       _id: req.params.id,
       user: req.user._id
     })
-
     if (!website) {
-      return res.status(400).json({ message: "Website not found" })
+      return res.status(404).json({ message: "Website not found" })
     }
-    if (!website.slug) {
-      website.slug = website.title.toLowerCase().replace(/[^a-z0-9]/g,"").slice(0, 60) + website._id.toString().slice(-5)
-    }
-
-    website.deployed = true
-    website.deployUrl = `${process.env.FRONTEND_URL}/site/${website.slug}`
-    await website.save()
-
-    return res.status(200).json({
-      url: website.deployUrl
-    })
+    return res.status(200).json({ message: "Website deleted successfully" })
   } catch (error) {
     return res.status(500).json({ message: error.message })
   }
 }
 
-export const getBySlug = async (req, res) => {
-  try {  
-    const website = await Website.findOne({
-      slug: req.params.slug
-    })
-    if (!website) {
-      return res.status(400).json({ message: "Website not found" })
+export const renameWebsite = async (req, res) => {
+  try {
+    const { title } = req.body
+    if (!title || !title.trim()) {
+      return res.status(400).json({ message: "Title is required" })
     }
-    return res.status(200).json(website)
+    const website = await Website.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      { title: title.trim() },
+      { new: true }
+    )
+    if (!website) {
+      return res.status(404).json({ message: "Website not found" })
+    }
+    return res.status(200).json({ message: "Renamed successfully", title: website.title })
   } catch (error) {
     return res.status(500).json({ message: error.message })
   }

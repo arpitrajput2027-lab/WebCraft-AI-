@@ -88,3 +88,20 @@ export const verifyPayment = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const demoPayment = async (req, res) => {
+  try {
+    const { credits, planId } = req.body;
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $inc: { credits: credits },
+            plan: planId
+        },
+        { new: true }
+    )
+    return res.json({ success: true, message: "Demo payment successful", user })
+  } catch (error) {
+    return res.status(500).json({ message: error.message })
+  }
+}
